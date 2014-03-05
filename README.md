@@ -2,8 +2,6 @@
 
 This is a collection of dotfiles that might be useful to others.  Like all dotfiles they're a mix of snippets others have given me and stuff I read online.  I post links to articles or posts when appropriate in comments.
 
-**Use at your own risk**
-
 # Usage:
 
     cd
