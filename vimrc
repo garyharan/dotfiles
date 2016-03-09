@@ -2,50 +2,113 @@ set nocompatible " no more legacy
 set laststatus=2 " show status lines 2 lines up so I see it
 
 " Vundle specifics
-set rtp+=~/.vim/bundle/vundle
-call vundle#rc()
-Bundle 'gmarik/vundle'
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
 
-" Bundle 'less.vim'
-Bundle 'groenewege/vim-less'
-Bundle 'scrooloose/nerdtree'
-Bundle 'gudleik/vim-slim'
-Bundle 'kchmck/vim-coffee-script'
-Bundle 'kien/ctrlp.vim'
-Bundle 'tomtom/tcomment_vim'
-Bundle 'tpope/vim-endwise'
-Bundle 'tpope/vim-fugitive'
-Bundle 'tpope/vim-haml'
-Bundle 'tpope/vim-ragtag'
-Bundle 'tpope/vim-surround'
-Bundle 'tpope/vim-endwise'
-Bundle 'tsaleh/vim-align'
-Bundle 'altercation/vim-colors-solarized'
-Bundle 'freitass/todo.txt-vim'
-Bundle 'danchoi/ruby_bashrockets.vim'
+" Required
+Plugin 'gmarik/Vundle'
+
+Plugin 'groenewege/vim-less'
+Plugin 'tpope/vim-rails'
+Plugin 'vim-ruby/vim-ruby'
+Plugin 'danchoi/ruby_bashrockets.vim'
+Plugin 'slim-template/vim-slim'
+Plugin 'kchmck/vim-coffee-script'
+Plugin 'kien/ctrlp.vim'
+Plugin 'tomtom/tcomment_vim'
+Plugin 'tpope/vim-endwise'
+Plugin 'tpope/vim-fugitive'
+Plugin 'tpope/vim-haml'
+Plugin 'tpope/vim-ragtag'
+Plugin 'tpope/vim-surround'
+Plugin 'tpope/vim-repeat'
+Plugin 'tsaleh/vim-align'
+Plugin 'altercation/vim-colors-solarized'
+Plugin 'freitass/todo.txt-vim'
+Plugin 'Lokaltog/vim-easymotion'
+Plugin 'scrooloose/nerdtree'
+Plugin 'fatih/vim-go'
+Plugin 'rking/ag.vim'
+Plugin 'godlygeek/tabular' " Aligns csv files
+Plugin 'terryma/vim-expand-region'
+Plugin 'kennethzfeng/vim-raml'
+
+" FROM https://github.com/garbas/vim-snipmate
+Plugin 'MarcWeber/vim-addon-mw-utils'
+Plugin 'tomtom/tlib_vim'
+Plugin 'garbas/vim-snipmate'
+Plugin 'honza/vim-snippets'
+
+call vundle#end()            " required
+filetype plugin indent on    " required
 
 " Brief help
-" :BundleList          - list configured bundles
-" :BundleInstall(!)    - install(update) bundles
-" :BundleSearch(!) foo - search(or refresh cache first) for foo
-" :BundleClean(!)      - confirm(or auto-approve) removal of unused bundles
+" :PluginList          - list configured bundles
+" :PluginInstall(!)    - install(update) bundles
+" :PluginSearch(!) foo - search(or refresh cache first) for foo
+" :PluginClean(!)      - confirm(or auto-approve) removal of unused bundles
 " see :h vundle for more details or wiki for FAQ
 
 "  Comments
 set formatoptions-=cro " disables comment continuation
 
-" Nerdtree should not open on load
-let g:NERDTreeHijackNetrw=0
+" EasyMotion
+let g:EasyMotion_do_mapping = 0 " Disable default mappings
+let g:EasyMotion_smartcase  = 1
+
+" ExpandRegion
+vmap v <Plug>(expand_region_expand)
+vmap <C-v> <Plug>(expand_region_shrink)
+
+" Gif config
+map  / <Plug>(easymotion-sn)
+omap / <Plug>(easymotion-tn)
+
+" These `n` & `N` mappings are options. You do not have to map `n` & `N` to EasyMotion.
+" Without these mappings, `n` & `N` works fine. (These mappings just provide
+" different highlight method and have some other features )
+map  n <Plug>(easymotion-next)
+map  N <Plug>(easymotion-prev)
+
+
+" Bi-directional find motion
+" Jump to anywhere you want with minimal keystrokes, with just one key binding.
+" `s{char}{label}`
+nmap s <Plug>(easymotion-s)
+" or
+" `s{char}{char}{label}`
+" Need one more keystroke, but on average, it may be more comfortable.
+nmap s <Plug>(easymotion-s2)
+
+" Turn on case sensitive feature
+let g:EasyMotion_smartcase = 1
+
+" JK motions: Line motions
+map <Leader>j <Plug>(easymotion-j)
+map <Leader>k <Plug>(easymotion-k)
+
 
 " CtrlP
 let g:ctrlp_cmd = 'CtrlP'
 let g:ctrlp_map = '<c-p>'
+let g:ctrlp_max_height = 40
+
 
 if has("gui_running")
   map <D-p> :execute 'CtrlP '<cr>
+
+  " avoids the unwanted substitution press enter key or type command to continue message
+  map <D-s> :w<cr>
+  imap <D-s> :w<cr>
 endif
 
-let g:ctrlp_custom_ignore = '\v[\/]\.git$'
+
+if exists("g:ctrl_user_command")
+  unlet g:ctrlp_user_command
+endif
+set wildignore=*/tmp/*,*.so,*.swp,*.zip,.git,vendor/plugins,spec/cassettes,coverage
+
+let g:ctrlp_custom_ignore = 'spec/cassettes\|.git'
 
 map <D-t> :tabnew<cr>
 imap <D-t> <Esc>:tabnew<cr>
@@ -83,8 +146,9 @@ set sidescroll=5
 set listchars+=precedes:<,extends:>
 
 " ensure windows aren't crushed too small in split views
-set winwidth=140     " active split
-set winminwidth=10  " other splits
+" set winwidth=120     " active split
+" set winminwidth=80  " other splits
+map <C-=> :winc
 
 " Intuitive backspacing in insert mode
 set backspace=indent,eol,start
@@ -99,27 +163,21 @@ syntax on
 filetype on
 filetype plugin on
 filetype indent on
-set background=dark
-colorscheme solarized
-let g:solarized_termtrans=0
-let g:solarized_contrast="normal"
-let g:solarized_visibility="normal"
-let g:solarized_termcolors=256
 set cursorline
 
-function ToggleBackgroundColor()
-  if !exists("g:solarized_background")
-    let g:solarized_background = &background
-  endif
-  let g:solarized_background = ( g:solarized_background == "dark"? "light" : "dark" )
-  if exists("g:colors_name")
-    let l:colors_name = g:colors_name
-    let &background = g:solarized_background
-    let g:colors_name = l:colors_name
-    exe "colorscheme " . g:colors_name
-  endif
-endfunction
-map <Leader>b :call ToggleBackgroundColor()<CR>
+" Solarized
+let g:solarized_termcolors=256 " http://stackoverflow.com/questions/7278267/incorrect-colors-with-vim-in-iterm2-using-solarized
+
+colorscheme solarized
+
+set background=dark
+
+if has("gui_running")
+  set background=light
+endif
+
+call togglebg#map('<Leader>b')
+syntax enable
 
 " Highlight search terms...
 set hlsearch
@@ -128,6 +186,8 @@ map ; :nohlsearch<CR> " remove highlight
 
 set list
 
+au BufRead,BufNewFile *.hamlc set ft=haml
+
 autocmd BufWritePre * :%s/\s\+$//e " delete trailing space automatically
 autocmd BufWritepre  *    set noinsertmode
 autocmd FileType c        setlocal noexpandtab shiftwidth=8 softtabstop=8 tabstop=8 noautoindent smartindent " 8 spaces instead of my usual 2
@@ -135,9 +195,6 @@ autocmd FileType make     setlocal noexpandtab
 
 autocmd BufNewFile,BufRead *.dryml setfiletype xml
 autocmd BufNewFile,BufRead Gemfile setfiletype ruby
-
-" set wildignore=.svn,CVS,.git,*.o,*.a,*.class,*.mo,*.la,*.so,*.obj,*.swp,*.jpg,*.png,*.xpm,*.gif,*/vendor/*
-set wildignore=*/tmp/*,*.so,*.swp,*.zip,.git,vendor/plugins
 
 set shortmess=atI
 set visualbell
@@ -267,18 +324,14 @@ if has("gui_running")
   imap <D-]> <Esc><D-]>
 endif
 
-"
 " window splitting mappings
 nmap <Leader>v :vsplit<CR> <C-w><C-w>
 " x
 " PREFER SAVING EASILY
-nmap <Leader>s :w<CR>
+" nmap <Leader>s :w<CR>
 
 " <leader>S opens a scratch buffer
 nmap <Leader>S :Scratch<CR>
-
-" Activate yaml plugin on .yaml or .yml
-au BufNewFile,BufRead *.yaml,*.yml so ~/.vim/plugin/yaml.vim
 
 nmap <Leader>n :set number<CR>
 
@@ -300,17 +353,6 @@ function! MapBoth(keys, rhs)
     execute 'imap' a:keys '<C-o>' . a:rhs
 endfunction
 
-" Arrows baby
-" http://stackoverflow.com/questions/8813855/in-vim-how-can-i-make-esc-and-arrow-keys-work-in-insert-mode/8815003#8815003
-" nnoremap <Esc>A <up>
-" nnoremap <Esc>B <down>
-" nnoremap <Esc>C <right>
-" nnoremap <Esc>D <left>
-" inoremap <Esc>A <up>
-" inoremap <Esc>B <down>
-" inoremap <Esc>C <right>
-" inoremap <Esc>D <left>
-
 " fixing append in line
 map <S-a> $a
 
@@ -319,6 +361,14 @@ call MapBoth('<C-h>', '<C-w>h')
 call MapBoth('<C-j>', '<C-w>j')
 call MapBoth('<C-k>', '<C-w>k')
 call MapBoth('<C-l>', '<C-w>l')
+
+function! AutoWidth()
+  let curwidth=system("wc -l " . bufname("%") . " | awk '{print $1}' ")
+  let curwidth=curwidth + 1
+  execute ":vertical resize " . curwidth
+endfunction
+
+map <leader>w :call AutoWidth()<cr>
 
 " easy tab navigation
 nnoremap <S-h> gT
@@ -350,18 +400,25 @@ function! AlternateForCurrentFile()
   let new_file = current_file
   let in_spec = match(current_file, '^spec/') != -1
   let going_to_spec = !in_spec
-  let in_app = match(current_file, '\<controllers\>') != -1 || match(current_file, '\<models\>') != -1 || match(current_file, '\<views\>') != -1 || match(current_file, '\<helpers\>') != -1 || match(current_file, '\<services\>') != 1 || match(current_file, '\<validators\>') != 1
+  let in_app = match(current_file, '\<controllers\>') != -1 || match(current_file, '\<models\>') != -1 || match(current_file, '\<javascript\>') != -1 || match(current_file, '\<views\>') != -1 || match(current_file, '\<helpers\>') != -1 || match(current_file, '\<services\>') != -1 || match(current_file, '\<validators\>') != -1 || match(current_file, '\<query_objects\>') != -1 || match(current_file, '\<value_objects\>') != 1
+
   if going_to_spec
     if in_app
       let new_file = substitute(new_file, '^app/', '', '')
+      let new_file = substitute(new_file, '^assets/', '', '')
     end
     let new_file = substitute(new_file, '\.rb$', '_spec.rb', '')
     let new_file = substitute(new_file, '\.jbuilder$', '_jbuilder_spec.rb', '')
+    let new_file = substitute(new_file, '\.js.coffee$', '_spec.js.coffee', '')
     let new_file = 'spec/' . new_file
   else
     let new_file = substitute(new_file, '_jbuilder_spec.rb', '.jbuilder', '')
     let new_file = substitute(new_file, '_spec\.rb$', '.rb', '')
     let new_file = substitute(new_file, '^spec/', '', '')
+    if match(current_file, 'js.coffee') != -1
+      let new_file = substitute(new_file, '_spec.js.coffee$', '.js.coffee', '')
+      let new_file = 'assets/' . new_file
+    end
     if in_app
       let new_file = 'app/' . new_file
     end
@@ -378,8 +435,6 @@ map <leader>T :call RunNearestTest()<cr>
 map <leader>a :call RunTests('')<cr>
 map <leader>t :w\|:silent exe "! echo \"spring rspec --format documentation %\" > test-commands"<cr>
 map <leader>l :w\|:silent exe "! echo \"spring rspec --format documentation " . "%" . ":" . line('.') . "\" > test-commands"<cr>
-map <leader>c :w\|:!script/features<cr>
-map <leader>w :w\|:!script/features --profile wip<cr>
 
 function! RunTestFile(...)
     if a:0
@@ -439,3 +494,31 @@ augroup BgHighlight
   autocmd WinEnter * set cul
   autocmd WinLeave * set nocul
 augroup END
+
+
+iab xdate     <c-r>=strftime("%d/%m/%y")<cr>
+iab xdatetime <c-r>=strftime("%d/%m/%y %H:%M:%S")<cr>
+
+
+if !exists( "*RubyEndToken" )
+
+  function RubyEndToken()
+    let current_line = getline( '.' )
+    let braces_at_end = '{\s*\(|\(,\|\s\|\w\)*|\s*\)\?$'
+    let stuff_without_do = '^\s*\(class\|if\|unless\|begin\|case\|for\|module\|while\|until\|def\)'
+      let with_do = 'do\s*\(|\(,\|\s\|\w\)*|\s*\)\?$'
+
+      if match(current_line, braces_at_end) >= 0
+        return "\<CR>}\<C-O>O"
+      elseif match(current_line, stuff_without_do) >= 0
+        return "\<CR>end\<C-O>O"
+      elseif match(current_line, with_do) >= 0
+        return "\<CR>end\<C-O>O"
+      else
+        return "\<CR>"
+      endif
+    endfunction
+
+endif
+
+imap <buffer> <CR> <C-R>=RubyEndToken()<CR>
