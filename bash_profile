@@ -1,14 +1,15 @@
 #!/bin/sh
 # paths
-export PATH=~/.rbenv/shims:$PATH # RBENV
-export PATH=/usr/local/bin:$PATH # homebrew
-export PATH=/usr/local/bin:$PATH # homebrew
-export PATH=/usr/local/sbin:$PATH # homebrew
+export PATH=~/.rbenv/shims:$PATH                 # RBENV
+export PATH=/usr/local/bin:$PATH                 # homebrew
+export PATH=/usr/local/bin:$PATH                 # homebrew
+export PATH=/usr/local/sbin:$PATH                # homebrew
 export PATH=~/bin:$PATH
 export PATH=/opt/local/bin:$PATH
 export PATH=/opt/local/sbin:$PATH
 export PATH=/usr/local/bin/gem:$PATH
 export PATH=/usr/local/mysql/bin:$PATH
+export PATH=/usr/local/bin:$PATH
 #development
 #
 current_branch_name () {
@@ -19,10 +20,16 @@ current_branch_number () {
   current_branch_name | sed s/[^0-9]*_.*//
 }
 
+gpr () {
+  hub pull-request -i $(current_branch_number)
+}
+
 # http://apple.stackexchange.com/questions/55875/how-can-git-auto-complete-branches-at-the-terminal-command-line
 if [ -f ~/.git-completion.bash ]; then
   . ~/.git-completion.bash
 fi
+
+export FTP_HOST=localhost
 
 export OPEN_GIT_PR=true # git pr 472 will now open in browser after it is done
 
@@ -31,7 +38,11 @@ export GIT_EDITOR="mvim -f"
 # enables color for tests http://stackoverflow.com/questions/307783/how-do-i-enable-color-when-running-rspec-through-rstakeout
 export AUTOTEST=true
 
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
+# Allow us to open the proper library with bundle open command
+export BUNDLER_EDITOR=mvim
+
+# useful when running test suites locally or other things
+export DEVELOPMENT=true
 #aliases
 
 alias ka="killall"
@@ -59,6 +70,7 @@ alias bes="bundle exec rspec"
 alias r="bundle exec rails"
 alias rs="bundle exec rails s"
 alias psp="rake parallel:create; rake parallel:prepare; rake parallel:spec"
+alias psps="rake parallel:spec"
 
 # for rspec
 alias rspec="rspec --color --format documentation"
@@ -117,11 +129,11 @@ rr() {
 # capistrano stuff: http://www.deprec.org/trac.cgi/wiki/UsageDocs
 alias cap1="`which cap` _1.4.1_"
 #environment
+eval "$(rbenv init -)" # https://github.com/sstephenson/rbenv
+
 export CLICOLOR=1
 export MANPATH=/opt/local/share/man:$MANPATH
 export HISTSIZE=5000
-export SSL_CERT_FILE=/usr/local/opt/curl-ca-bundle/share/ca-bundle.crt # brew install curl-ca-bundle
-
 
 function title {
   echo -e "\033];$1\007"
