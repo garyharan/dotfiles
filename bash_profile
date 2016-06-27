@@ -20,6 +20,18 @@ current_branch_number () {
   current_branch_name | sed s/[^0-9]*_.*//
 }
 
+aheadof() {
+  default_remote='production'
+
+  remote=${1-$default_remote}
+
+  fetch="$(git fetch $remote)"
+
+  ahead="$(git rev-list $remote/master..HEAD --count)"
+
+  echo "$ahead commits ahead of $remote/master"
+}
+
 gpr () {
   hub pull-request -i $(current_branch_number)
 }
@@ -47,6 +59,8 @@ export DEVELOPMENT=true
 
 alias ka="killall"
 
+alias ag='ag --path-to-agignore ~/.agignore'
+
 alias g="git"
 alias ga="git add"
 alias gd="git difftool -y"
@@ -57,7 +71,9 @@ alias gca="git commit -a"
 alias ll="ls -las"
 alias gl="git log --oneline --decorate"
 alias g="git"
-alias gp="git pull --rebase"
+alias gps="git push"
+alias gp="git pull"
+alias rdm="git diff master --name-only | grep '.rb' | grep -v 'schema' | xargs rubocop"
 
 alias fact="elinks -dump randomfunfacts.com | sed -n '/^| /p' | tr -d \|" # taken from http://coderwall.com/p/hvfvva
 
@@ -147,11 +163,11 @@ function parse_git_branch() {
 
 bash_prompt() {
   case $TERM in
-   xterm*|rxvt*)
-     local TITLEBAR='\[\033]0;\u:${NEW_PWD}\007\]'
+    xterm*|rxvt*)
+      local TITLEBAR='\[\033]0;\u:${NEW_PWD}\007\]'
       ;;
-   *)
-     local TITLEBAR=""
+    *)
+      local TITLEBAR=""
       ;;
   esac
   local NONE="\[\033[0m\]"  # unsets color to term's fg color

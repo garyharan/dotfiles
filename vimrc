@@ -39,6 +39,8 @@ Plugin 'tomtom/tlib_vim'
 Plugin 'garbas/vim-snipmate'
 Plugin 'honza/vim-snippets'
 
+Plugin 'elixir-lang/vim-elixir'
+
 call vundle#end()            " required
 filetype plugin indent on    " required
 
@@ -70,6 +72,9 @@ omap / <Plug>(easymotion-tn)
 map  n <Plug>(easymotion-next)
 map  N <Plug>(easymotion-prev)
 
+" Rubocop
+map <Leader>r :!rubocop -a %<CR>
+
 
 " Bi-directional find motion
 " Jump to anywhere you want with minimal keystrokes, with just one key binding.
@@ -99,15 +104,15 @@ if has("gui_running")
 
   " avoids the unwanted substitution press enter key or type command to continue message
   map <D-s> :w<cr>
-  imap <D-s> :w<cr>
+  imap <D-s> <esc>:w<cr>
 endif
 
-
-if exists("g:ctrl_user_command")
-  unlet g:ctrlp_user_command
-endif
-set wildignore=*/tmp/*,*.so,*.swp,*.zip,.git,vendor/plugins,spec/cassettes,coverage
-
+" http://stackoverflow.com/questions/18285751/use-ag-in-ctrlp-vim
+if executable('ag')
+  set grepprg='ag\ --nogroup\ --nocolor'
+  let g:ctrlp_user_command='ag %s -l --nocolor --hidden -g ""'
+  let g:ctrlp_use_caching = 0
+end
 let g:ctrlp_custom_ignore = 'spec/cassettes\|.git'
 
 map <D-t> :tabnew<cr>
@@ -140,14 +145,13 @@ set copyindent
 set nobackup
 
 " Don't wrap lines longer than the window's width
-set nowrap
 set linebreak
 set sidescroll=5
 set listchars+=precedes:<,extends:>
 
 " ensure windows aren't crushed too small in split views
-" set winwidth=120     " active split
-" set winminwidth=80  " other splits
+set winwidth=120     " active split
+set winminwidth=80  " other splits
 map <C-=> :winc
 
 " Intuitive backspacing in insert mode
@@ -171,10 +175,6 @@ let g:solarized_termcolors=256 " http://stackoverflow.com/questions/7278267/inco
 colorscheme solarized
 
 set background=dark
-
-if has("gui_running")
-  set background=light
-endif
 
 call togglebg#map('<Leader>b')
 syntax enable
@@ -278,7 +278,7 @@ imap <khome> <home>
 nmap <khome> <home>
 inoremap <silent> <home> <C-O>:call Home()<CR>
 nnoremap <silent> <home> :call Home()<CR>
-function Home()
+function! Home()
   let curcol = wincol()
   normal ^
   let newcol = wincol()
@@ -292,7 +292,7 @@ imap <kend> <end>
 nmap <kend> <end>
 inoremap <silent> <end> <C-O>:call End()<CR>
 nnoremap <silent> <end> :call End()<CR>
-function End()
+function! End()
   let curcol = wincol()
   normal g$
   let newcol = wincol()
@@ -395,36 +395,48 @@ function! OpenTestAlternate()
   let new_file = AlternateForCurrentFile()
   exec ':e ' . new_file
 endfunction
-function! AlternateForCurrentFile()
-  let current_file = expand("%")
-  let new_file = current_file
-  let in_spec = match(current_file, '^spec/') != -1
-  let going_to_spec = !in_spec
-  let in_app = match(current_file, '\<controllers\>') != -1 || match(current_file, '\<models\>') != -1 || match(current_file, '\<javascript\>') != -1 || match(current_file, '\<views\>') != -1 || match(current_file, '\<helpers\>') != -1 || match(current_file, '\<services\>') != -1 || match(current_file, '\<validators\>') != -1 || match(current_file, '\<query_objects\>') != -1 || match(current_file, '\<value_objects\>') != 1
 
-  if going_to_spec
-    if in_app
-      let new_file = substitute(new_file, '^app/', '', '')
-      let new_file = substitute(new_file, '^assets/', '', '')
-    end
-    let new_file = substitute(new_file, '\.rb$', '_spec.rb', '')
-    let new_file = substitute(new_file, '\.jbuilder$', '_jbuilder_spec.rb', '')
-    let new_file = substitute(new_file, '\.js.coffee$', '_spec.js.coffee', '')
-    let new_file = 'spec/' . new_file
+function! AlternateForCurrentFile()
+  return AlternateForFile(expand("%"))
+endfunction
+
+function! AlternateForFile(filename)
+  let new_file      = a:filename
+
+  if new_file ==? 'Gemfile'
+    return 'Gemfile.lock'
+  elseif new_file ==? 'Gemfile.lock'
+    return 'Gemfile'
+  end
+
+  if a:filename !~ '^spec/'
+    let new_file = substitute(new_file, '^app/',  'spec\/',      '')
+    let new_file = substitute(new_file, '^lib/',  'spec\/lib\/', '')
+    let new_file = substitute(new_file, '\.rb',   '_spec\.rb',   '')
   else
-    let new_file = substitute(new_file, '_jbuilder_spec.rb', '.jbuilder', '')
-    let new_file = substitute(new_file, '_spec\.rb$', '.rb', '')
-    let new_file = substitute(new_file, '^spec/', '', '')
-    if match(current_file, 'js.coffee') != -1
-      let new_file = substitute(new_file, '_spec.js.coffee$', '.js.coffee', '')
-      let new_file = 'assets/' . new_file
-    end
-    if in_app
-      let new_file = 'app/' . new_file
-    end
-  endif
+    let new_file = substitute(new_file, '^spec\/lib\/',   'lib\/', '')
+    let new_file = substitute(new_file, '^spec\/',        'app\/', '')
+    let new_file = substitute(new_file, '_spec\.rb',      '\.rb',  '')
+  end
+
   return new_file
 endfunction
+
+function! AssertEquality(value, expectation)
+  if a:value != a:expectation
+    echoerr a:value . ' does not match ' . a:expectation
+  endif
+endfunction
+
+function! TestAlternateForFile()
+  call AssertEquality(AlternateForFile('spec/lib/adwords/api_spec.rb'), 'lib/adwords/api.rb')
+  call AssertEquality(AlternateForFile('lib/adwords/api.rb'),           'spec/lib/adwords/api_spec.rb')
+  call AssertEquality(AlternateForFile('app/controllers/application_controller.rb'), 'spec/controllers/application_controller_spec.rb')
+  call AssertEquality(AlternateForFile('Gemfile'), 'Gemfile.lock')
+endfunction
+
+call TestAlternateForFile()
+
 nnoremap <leader>. :call OpenTestAlternate()<cr>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -474,7 +486,7 @@ function! RunTests(filename)
 endfunction
 
 " Allow ci( to work as desired
-function New_cib()
+function! New_cib()
     if search("(","bn") == line(".")
         sil exe "normal! f)ci("
         sil exe "normal! l"
