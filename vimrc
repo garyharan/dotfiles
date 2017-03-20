@@ -422,15 +422,26 @@ function! AlternateForFile(filename)
       let new_file = substitute(new_file, '_spec\.rb',      '\.rb',  '')
     end
   elseif a:filename =~ 'ex$' || a:filename =~ 'exs$'
-    if a:filename =~ '^test/'
-      let new_file = substitute(new_file, '^test/',      'web\/',       '')
-      let new_file = substitute(new_file, '_test.exs$',  '.ex',         '')
-    else
-      let new_file = substitute(new_file, '^web/',       'test\/',      '')
-      let new_file = substitute(new_file, '.ex$',        '_test.exs',   '')
-    end
-  end
 
+    if a:filename =~ '^test/channels/' || a:filename =~ '^test/controllers' || a:filename =~ '^test/models'
+      let new_file = substitute(new_file, '^test/channels', 'web\/channels',        '')
+      let new_file = substitute(new_file, '^test/controllers', 'web\/controllers',  '')
+      let new_file = substitute(new_file, '^test/models',      'web\/models',       '')
+      let new_file = substitute(new_file, '_test.exs$',        '.ex',               '')
+    elseif a:filename =~ '^test/'  " standard elixir files
+      let new_file = substitute(new_file, '^test/',      'lib\/',       '')
+      let new_file = substitute(new_file, '_test.exs$',  '.ex',         '')
+    elseif a:filename =~ '^web/controllers' || a:filename =~ '^web/models' || a:filename =~ '^web/channels'
+      let new_file = substitute(new_file, '^web/controllers',  'test/controllers',  '')
+      let new_file = substitute(new_file, '^web/models/',      'test\/models\/',    '')
+      let new_file = substitute(new_file, '^web/channels/',    'test\/channels\/',  '')
+      let new_file = substitute(new_file, '.ex',               '_test.exs',         '')
+    elseif a:filename =~ '^lib'
+      let new_file = substitute(new_file, '^lib',  'test',     '')
+      let new_file = substitute(new_file, '.ex',  '_test.exs', '')
+    end
+
+  end
 
   return new_file
 endfunction
@@ -442,9 +453,14 @@ function! AssertEquality(value, expectation)
 endfunction
 
 function! TestAlternateForFile()
+  " Elixir
+  call AssertEquality(AlternateForFile('test/piapprox_test.exs'),                     'lib/piapprox.ex')
+  call AssertEquality(AlternateForFile('lib/piapprox.ex'),                            'test/piapprox_test.exs')
+
   " Phoenix
   call AssertEquality(AlternateForFile('test/controllers/page_controller_test.exs'), 'web/controllers/page_controller.ex')
-  call AssertEquality(AlternateForFile('web/controllers/page_controller.ex'), 'test/controllers/page_controller_test.exs')
+  call AssertEquality(AlternateForFile('test/channels/room_channel_test.exs'),       'web/channels/room_channel.ex')
+  call AssertEquality(AlternateForFile('web/controllers/page_controller.ex'),        'test/controllers/page_controller_test.exs')
 
   " Rails
   call AssertEquality(AlternateForFile('spec/lib/adwords/api_spec.rb'), 'lib/adwords/api.rb')
