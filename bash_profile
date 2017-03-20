@@ -72,7 +72,7 @@ alias gwd="git diff --word-diff"
 alias gs="git status -sb"
 alias gc="git commit"
 alias gca="git commit -a"
-alias ll="ls -las"
+alias ll="ls -last"
 alias gl="git log --oneline --decorate"
 alias g="git"
 alias gps="git push"
@@ -105,45 +105,6 @@ function gin {
 
 function gdel {
   git status | awk '/deleted: (.*)/ {print $3}' | xargs git rm -f;
-}
-
-# https://gist.github.com/427815
-# script/server with Rails 3 support
-ss() {
-  if [ -f ./script/rails ]; then
-    ./script/rails server $@
-  else
-    ./script/server -e $@
-  fi
-}
-
-# script/console with Rails 3 support
-sc() {
-  if [ -f ./script/rails ]; then
-    ./script/rails console $@
-  else
-    ./script/console $@
-  fi
-}
-
-# script/generate with Rails 3 support
-sg() {
-  if [ -f ./script/rails ]; then
-    ./script/rails generate $@
-  else
-    ./script/generate $@
-  fi
-}
-
-rr() {
-  rake
-  if [ $? -gt 0 ]; then
-    say "Some tests failed."
-    echo "Some tests failed."
-  else
-    say "All tests green."
-    echo "All tests green."
-  fi
 }
 
 # capistrano stuff: http://www.deprec.org/trac.cgi/wiki/UsageDocs
