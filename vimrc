@@ -31,7 +31,7 @@ Plugin 'fatih/vim-go'
 Plugin 'rking/ag.vim'
 Plugin 'godlygeek/tabular' " Aligns csv files
 Plugin 'terryma/vim-expand-region'
-Plugin 'kennethzfeng/vim-raml'
+Plugin 'wavded/vim-stylus'
 
 " FROM https://github.com/garbas/vim-snipmate
 Plugin 'MarcWeber/vim-addon-mw-utils'
@@ -50,6 +50,10 @@ filetype plugin indent on    " required
 " :PluginSearch(!) foo - search(or refresh cache first) for foo
 " :PluginClean(!)      - confirm(or auto-approve) removal of unused bundles
 " see :h vundle for more details or wiki for FAQ
+
+" display column and line highlights
+set cursorline
+set cursorcolumn
 
 "  Comments
 set formatoptions-=cro " disables comment continuation
@@ -150,8 +154,8 @@ set sidescroll=5
 set listchars+=precedes:<,extends:>
 
 " ensure windows aren't crushed too small in split views
-set winwidth=120     " active split
-set winminwidth=80  " other splits
+set winwidth=110     " active split
+set winminwidth=20  " other splits
 map <C-=> :winc
 
 " Intuitive backspacing in insert mode
@@ -320,8 +324,6 @@ if has("gui_running")
   imap <C-up> <C-o><C-y>
   nmap <C-down> <C-e>
   imap <C-down> <C-o><C-e>
-
-  imap <D-]> <Esc><D-]>
 endif
 
 " window splitting mappings
@@ -409,15 +411,26 @@ function! AlternateForFile(filename)
     return 'Gemfile'
   end
 
-  if a:filename !~ '^spec/'
-    let new_file = substitute(new_file, '^app/',  'spec\/',      '')
-    let new_file = substitute(new_file, '^lib/',  'spec\/lib\/', '')
-    let new_file = substitute(new_file, '\.rb',   '_spec\.rb',   '')
-  else
-    let new_file = substitute(new_file, '^spec\/lib\/',   'lib\/', '')
-    let new_file = substitute(new_file, '^spec\/',        'app\/', '')
-    let new_file = substitute(new_file, '_spec\.rb',      '\.rb',  '')
+  if a:filename =~ 'rb$'
+    if a:filename !~ '^spec/'
+      let new_file = substitute(new_file, '^app/',  'spec\/',      '')
+      let new_file = substitute(new_file, '^lib/',  'spec\/lib\/', '')
+      let new_file = substitute(new_file, '\.rb',   '_spec\.rb',   '')
+    else
+      let new_file = substitute(new_file, '^spec\/lib\/',   'lib\/', '')
+      let new_file = substitute(new_file, '^spec\/',        'app\/', '')
+      let new_file = substitute(new_file, '_spec\.rb',      '\.rb',  '')
+    end
+  elseif a:filename =~ 'ex$' || a:filename =~ 'exs$'
+    if a:filename =~ '^test/'
+      let new_file = substitute(new_file, '^test/',      'web\/',       '')
+      let new_file = substitute(new_file, '_test.exs$',  '.ex',         '')
+    else
+      let new_file = substitute(new_file, '^web/',       'test\/',      '')
+      let new_file = substitute(new_file, '.ex$',        '_test.exs',   '')
+    end
   end
+
 
   return new_file
 endfunction
@@ -429,6 +442,11 @@ function! AssertEquality(value, expectation)
 endfunction
 
 function! TestAlternateForFile()
+  " Phoenix
+  call AssertEquality(AlternateForFile('test/controllers/page_controller_test.exs'), 'web/controllers/page_controller.ex')
+  call AssertEquality(AlternateForFile('web/controllers/page_controller.ex'), 'test/controllers/page_controller_test.exs')
+
+  " Rails
   call AssertEquality(AlternateForFile('spec/lib/adwords/api_spec.rb'), 'lib/adwords/api.rb')
   call AssertEquality(AlternateForFile('lib/adwords/api.rb'),           'spec/lib/adwords/api_spec.rb')
   call AssertEquality(AlternateForFile('app/controllers/application_controller.rb'), 'spec/controllers/application_controller_spec.rb')
@@ -449,53 +467,53 @@ map <leader>t :w\|:silent exe "! echo \"spring rspec --format documentation %\" 
 map <leader>l :w\|:silent exe "! echo \"spring rspec --format documentation " . "%" . ":" . line('.') . "\" > test-commands"<cr>
 
 function! RunTestFile(...)
-    if a:0
-        let command_suffix = a:1
-    else
-        let command_suffix = ""
-    endif
+  if a:0
+    let command_suffix = a:1
+  else
+    let command_suffix = ""
+  endif
 
-    " Run the tests for the previously-marked file.
-    let in_test_file = match(expand("%"), '\(.feature\|_spec.rb\)$') != -1
-    let alternate_file = AlternateForCurrentFile()
-    if in_test_file
-        let test_file = expand("%")
-        call RunTests(test_file . command_suffix)
-    else
-        let test_file = alternate_file
-        call RunTests(test_file . command_suffix)
-    endif
+  " Run the tests for the previously-marked file.
+  let in_test_file = match(expand("%"), '\(.feature\|_spec.rb\)$') != -1
+  let alternate_file = AlternateForCurrentFile()
+  if in_test_file
+    let test_file = expand("%")
+    call RunTests(test_file . command_suffix)
+  else
+    let test_file = alternate_file
+    call RunTests(test_file . command_suffix)
+  endif
 endfunction
 
 function! RunNearestTest()
-    let spec_line_number = line('.')
-    call RunTestFile(":" . spec_line_number . " -b")
+  let spec_line_number = line('.')
+  call RunTestFile(":" . spec_line_number . " -b")
 endfunction
 
 function! RunTests(filename)
-    " Write the file and run tests for the given filename
-    :w
-    :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
-    :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
-    :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
-    :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
-    :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
-    :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
-    exec ": silent !bundle exec spin push " . a:filename
-    :redraw!
+  " Write the file and run tests for the given filename
+  :w
+  :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
+  :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
+  :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
+  :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
+  :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
+  :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
+  exec ": silent !bundle exec spin push " . a:filename
+  :redraw!
 endfunction
 
 " Allow ci( to work as desired
 function! New_cib()
-    if search("(","bn") == line(".")
-        sil exe "normal! f)ci("
-        sil exe "normal! l"
-        startinsert
-    else
-        sil exe "normal! f(ci("
-        sil exe "normal! l"
-        startinsert
-    endif
+  if search("(","bn") == line(".")
+    sil exe "normal! f)ci("
+    sil exe "normal! l"
+    startinsert
+  else
+    sil exe "normal! f(ci("
+    sil exe "normal! l"
+    startinsert
+  endif
 endfunction
 
 nnoremap ci( :call New_cib()<CR>
@@ -518,18 +536,18 @@ if !exists( "*RubyEndToken" )
     let current_line = getline( '.' )
     let braces_at_end = '{\s*\(|\(,\|\s\|\w\)*|\s*\)\?$'
     let stuff_without_do = '^\s*\(class\|if\|unless\|begin\|case\|for\|module\|while\|until\|def\)'
-      let with_do = 'do\s*\(|\(,\|\s\|\w\)*|\s*\)\?$'
+    let with_do = 'do\s*\(|\(,\|\s\|\w\)*|\s*\)\?$'
 
-      if match(current_line, braces_at_end) >= 0
-        return "\<CR>}\<C-O>O"
-      elseif match(current_line, stuff_without_do) >= 0
-        return "\<CR>end\<C-O>O"
-      elseif match(current_line, with_do) >= 0
-        return "\<CR>end\<C-O>O"
-      else
-        return "\<CR>"
-      endif
-    endfunction
+    if match(current_line, braces_at_end) >= 0
+      return "\<CR>}\<C-O>O"
+    elseif match(current_line, stuff_without_do) >= 0
+      return "\<CR>end\<C-O>O"
+    elseif match(current_line, with_do) >= 0
+      return "\<CR>end\<C-O>O"
+    else
+      return "\<CR>"
+    endif
+  endfunction
 
 endif
 
