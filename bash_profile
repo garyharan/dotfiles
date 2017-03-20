@@ -10,6 +10,10 @@ export PATH=/opt/local/sbin:$PATH
 export PATH=/usr/local/bin/gem:$PATH
 export PATH=/usr/local/mysql/bin:$PATH
 export PATH=/usr/local/bin:$PATH
+
+# https://github.com/rgcr/m-cli
+export PATH=$PATH:/usr/local/m-cli
+
 #development
 #
 current_branch_name () {
@@ -205,7 +209,7 @@ bash_prompt() {
   local UC=$W         # user's color
   [ $UID -eq "0" ] && UC=$R   # root's color
 
-  PS1="\W $M\$(parse_git_branch)$NONE $UC\$$NONE "
+  PS1="$BGK$Y\A$NONE \W $M\$(parse_git_branch)$NONE $UC\$$NONE "
 }
 
 bash_prompt
