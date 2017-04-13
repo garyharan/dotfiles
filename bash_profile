@@ -1,4 +1,16 @@
 #!/bin/sh
+
+# RBENV
+if [ -f .rbenv-vars ]
+then
+  source .rbenv-vars
+fi
+
+# Exercism
+if [ -f ~/.config/exercism/exercism_completion.bash ]; then
+  . ~/.config/exercism/exercism_completion.bash
+fi
+
 # paths
 export PATH=~/.rbenv/shims:$PATH                 # RBENV
 export PATH=/usr/local/bin:$PATH                 # homebrew
@@ -170,7 +182,7 @@ bash_prompt() {
   local UC=$W         # user's color
   [ $UID -eq "0" ] && UC=$R   # root's color
 
-  PS1="$BGK$Y\A$NONE \W $M\$(parse_git_branch)$NONE $UC\$$NONE "
+  PS1="\W $M\$(parse_git_branch)$NONE $BGK$Y\A$NONE $UC\$$NONE "
 }
 
 bash_prompt

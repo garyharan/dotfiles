@@ -436,11 +436,14 @@ function! AlternateForFile(filename)
       let new_file = substitute(new_file, '^web/models/',      'test\/models\/',    '')
       let new_file = substitute(new_file, '^web/channels/',    'test\/channels\/',  '')
       let new_file = substitute(new_file, '.ex',               '_test.exs',         '')
-    elseif a:filename =~ '^lib'
+    elseif a:filename =~ '^lib/'
       let new_file = substitute(new_file, '^lib',  'test',     '')
       let new_file = substitute(new_file, '.ex',  '_test.exs', '')
+    elseif a:filename =~ '\v\w+_test\.exs'
+      let new_file = substitute(new_file,  '_test', '',         '')
+    elseif a:filename =~ '\v^\w+\.exs'
+      let new_file = substitute(new_file,  '.exs', '_test.exs', '')
     end
-
   end
 
   return new_file
@@ -456,6 +459,9 @@ function! TestAlternateForFile()
   " Elixir
   call AssertEquality(AlternateForFile('test/piapprox_test.exs'),                     'lib/piapprox.ex')
   call AssertEquality(AlternateForFile('lib/piapprox.ex'),                            'test/piapprox_test.exs')
+  " Exercism Elixir
+  call AssertEquality(AlternateForFile('hello_world.exs'),      'hello_world_test.exs')
+  call AssertEquality(AlternateForFile('hello_world_test.exs'), 'hello_world.exs')
 
   " Phoenix
   call AssertEquality(AlternateForFile('test/controllers/page_controller_test.exs'), 'web/controllers/page_controller.ex')
