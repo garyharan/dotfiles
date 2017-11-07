@@ -23,6 +23,7 @@ Plugin 'tpope/vim-ragtag'
 Plugin 'tpope/vim-surround'
 Plugin 'tpope/vim-repeat'
 Plugin 'tsaleh/vim-align'
+" Plugin 'dracula/vim'
 Plugin 'altercation/vim-colors-solarized'
 Plugin 'freitass/todo.txt-vim'
 Plugin 'Lokaltog/vim-easymotion'
@@ -175,11 +176,8 @@ set cursorline
 
 " Solarized
 let g:solarized_termcolors=256 " http://stackoverflow.com/questions/7278267/incorrect-colors-with-vim-in-iterm2-using-solarized
-
 colorscheme solarized
-
 set background=dark
-
 call togglebg#map('<Leader>b')
 syntax enable
 

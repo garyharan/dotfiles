@@ -75,7 +75,7 @@ export DEVELOPMENT=true
 
 alias ka="killall"
 
-alias ag='ag --path-to-agignore ~/.agignore'
+alias ag='ag --path-to-ignore ~/.agignore'
 
 alias g="git"
 alias ga="git add"
