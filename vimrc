@@ -8,16 +8,22 @@ call vundle#begin()
 " Required
 Plugin 'gmarik/Vundle'
 
+Plugin 'janko-m/vim-test'
 Plugin 'groenewege/vim-less'
 Plugin 'tpope/vim-rails'
 Plugin 'vim-ruby/vim-ruby'
+Plugin 'zackhsi/sorbet.vim'
 Plugin 'danchoi/ruby_bashrockets.vim'
 Plugin 'slim-template/vim-slim'
 Plugin 'kchmck/vim-coffee-script'
+
 Plugin 'kien/ctrlp.vim'
+Plugin 'jremmen/vim-ripgrep'
+
 Plugin 'tomtom/tcomment_vim'
 Plugin 'tpope/vim-endwise'
 Plugin 'tpope/vim-fugitive'
+Plugin 'tpope/vim-rhubarb'
 Plugin 'tpope/vim-haml'
 Plugin 'tpope/vim-ragtag'
 Plugin 'tpope/vim-surround'
@@ -33,6 +39,10 @@ Plugin 'rking/ag.vim'
 Plugin 'godlygeek/tabular' " Aligns csv files
 Plugin 'terryma/vim-expand-region'
 Plugin 'wavded/vim-stylus'
+Plugin 'zxqfl/tabnine-vim'
+Plugin 'AndrewRadev/splitjoin.vim'
+
+Plugin 'ruanyl/vim-gh-line'
 
 " FROM https://github.com/garbas/vim-snipmate
 Plugin 'MarcWeber/vim-addon-mw-utils'
@@ -63,6 +73,11 @@ set formatoptions-=cro " disables comment continuation
 let g:EasyMotion_do_mapping = 0 " Disable default mappings
 let g:EasyMotion_smartcase  = 1
 
+
+" Split and join code
+let g:splitjoin_join_mapping  = '<C-j>'
+let g:splitjoin_split_mapping = '<C-s>'
+
 " ExpandRegion
 vmap v <Plug>(expand_region_expand)
 vmap <C-v> <Plug>(expand_region_shrink)
@@ -78,8 +93,7 @@ map  n <Plug>(easymotion-next)
 map  N <Plug>(easymotion-prev)
 
 " Rubocop
-map <Leader>r :!rubocop -a %<CR>
-
+map <Leader>r :! bundle exec rubocop -a %<CR>
 
 " Bi-directional find motion
 " Jump to anywhere you want with minimal keystrokes, with just one key binding.
@@ -97,28 +111,26 @@ let g:EasyMotion_smartcase = 1
 map <Leader>j <Plug>(easymotion-j)
 map <Leader>k <Plug>(easymotion-k)
 
-
 " CtrlP
 let g:ctrlp_cmd = 'CtrlP'
 let g:ctrlp_map = '<c-p>'
 let g:ctrlp_max_height = 40
 
-
-if has("gui_running")
-  map <D-p> :execute 'CtrlP '<cr>
-
-  " avoids the unwanted substitution press enter key or type command to continue message
-  map <D-s> :w<cr>
-  imap <D-s> <esc>:w<cr>
-endif
+" set wildignore=spec/cassettes/,.git/,sorbet/
 
 " http://stackoverflow.com/questions/18285751/use-ag-in-ctrlp-vim
-if executable('ag')
+if executable('rg')
+  set grepprg=rg\ --color=never
+  let g:ctrlp_user_command = 'rg %s --files --color=never --glob "!sorbet/*"'
+  let g:ctrlp_use_caching = 0
+elseif executable('ag')
   set grepprg='ag\ --nogroup\ --nocolor'
-  let g:ctrlp_user_command='ag %s -l --nocolor --hidden -g ""'
+  let g:ctrlp_user_command='ag %s -l --nocolor --hidden -g "!sorbet/*"'
   let g:ctrlp_use_caching = 0
 end
-let g:ctrlp_custom_ignore = 'spec/cassettes\|.git'
+
+" This only works if you do not write a custom user commande
+" let g:ctrlp_custom_ignore = { 'dir': 'spec/cassettes$\|.git$\|sorbet$' }
 
 map <D-t> :tabnew<cr>
 imap <D-t> <Esc>:tabnew<cr>
@@ -177,7 +189,7 @@ set cursorline
 " Solarized
 let g:solarized_termcolors=256 " http://stackoverflow.com/questions/7278267/incorrect-colors-with-vim-in-iterm2-using-solarized
 colorscheme solarized
-set background=dark
+set background=light
 call togglebg#map('<Leader>b')
 syntax enable
 
@@ -196,6 +208,7 @@ autocmd FileType c        setlocal noexpandtab shiftwidth=8 softtabstop=8 tabsto
 autocmd FileType make     setlocal noexpandtab
 
 autocmd BufNewFile,BufRead *.dryml setfiletype xml
+autocmd BufNewFile,BufRead *.rbi   setfiletype ruby
 autocmd BufNewFile,BufRead Gemfile setfiletype ruby
 
 set shortmess=atI
@@ -232,7 +245,7 @@ set smarttab
 """"""""""""""""""""""""""""""""""""""""""""""""
 
 "Syntax highlighting if appropriate
-if &t_Co > 2 || has("gui_running")
+if &t_Co > 2
   syntax on
   set hlsearch
   set incsearch "For fast terminals can highlight search string as you type
@@ -310,20 +323,6 @@ function! End()
   endif
 endfunction
 
-if has("gui_running")
-  " commenting
-  map <D-/> Vgc<ESC>
-  vmap <D-/> gc<ESC>
-
-  "Ctrl-{up,down} to scroll.
-  "The following only works in gvim?
-  "Also vim doesn't have default C-{home,end} bindings?
-  nmap <C-up> <C-y>
-  imap <C-up> <C-o><C-y>
-  nmap <C-down> <C-e>
-  imap <C-down> <C-o><C-e>
-endif
-
 " window splitting mappings
 nmap <Leader>v :vsplit<CR> <C-w><C-w>
 " x
@@ -387,7 +386,17 @@ augroup resCur
   autocmd BufWinEnter * call ResCur()
 augroup END
 
-" FROM Gary Bernhardt
+function! FileExists(filename)
+  return filereadable(expand(a:filename))
+endfunction
+
+function! SourceIfExists(filemame)
+  if FileExists(a:filename)
+    exe 'source' a:filename
+  endif
+endfunction
+
+" Special thanks to Gary Bernhardt
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " SWITCH BETWEEN TEST AND PRODUCTION CODE
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -400,80 +409,84 @@ function! AlternateForCurrentFile()
   return AlternateForFile(expand("%"))
 endfunction
 
-function! AlternateForFile(filename)
-  let new_file      = a:filename
+if FileExists('.vim_alternates.vim')
+  exe 'source' '.vim_alternates.vim'
+else
+  function! AlternateForFile(filename)
+    let new_file      = a:filename
 
-  if new_file ==? 'Gemfile'
-    return 'Gemfile.lock'
-  elseif new_file ==? 'Gemfile.lock'
-    return 'Gemfile'
-  end
-
-  if a:filename =~ 'rb$'
-    if a:filename !~ '^spec/'
-      let new_file = substitute(new_file, '^app/',  'spec\/',      '')
-      let new_file = substitute(new_file, '^lib/',  'spec\/lib\/', '')
-      let new_file = substitute(new_file, '\.rb',   '_spec\.rb',   '')
-    else
-      let new_file = substitute(new_file, '^spec\/lib\/',   'lib\/', '')
-      let new_file = substitute(new_file, '^spec\/',        'app\/', '')
-      let new_file = substitute(new_file, '_spec\.rb',      '\.rb',  '')
+    if new_file ==? 'Gemfile'
+      return 'Gemfile.lock'
+    elseif new_file ==? 'Gemfile.lock'
+      return 'Gemfile'
     end
-  elseif a:filename =~ 'ex$' || a:filename =~ 'exs$'
 
-    if a:filename =~ '^test/channels/' || a:filename =~ '^test/controllers' || a:filename =~ '^test/models'
-      let new_file = substitute(new_file, '^test/channels', 'web\/channels',        '')
-      let new_file = substitute(new_file, '^test/controllers', 'web\/controllers',  '')
-      let new_file = substitute(new_file, '^test/models',      'web\/models',       '')
-      let new_file = substitute(new_file, '_test.exs$',        '.ex',               '')
-    elseif a:filename =~ '^test/'  " standard elixir files
-      let new_file = substitute(new_file, '^test/',      'lib\/',       '')
-      let new_file = substitute(new_file, '_test.exs$',  '.ex',         '')
-    elseif a:filename =~ '^web/controllers' || a:filename =~ '^web/models' || a:filename =~ '^web/channels'
-      let new_file = substitute(new_file, '^web/controllers',  'test/controllers',  '')
-      let new_file = substitute(new_file, '^web/models/',      'test\/models\/',    '')
-      let new_file = substitute(new_file, '^web/channels/',    'test\/channels\/',  '')
-      let new_file = substitute(new_file, '.ex',               '_test.exs',         '')
-    elseif a:filename =~ '^lib/'
-      let new_file = substitute(new_file, '^lib',  'test',     '')
-      let new_file = substitute(new_file, '.ex',  '_test.exs', '')
-    elseif a:filename =~ '\v\w+_test\.exs'
-      let new_file = substitute(new_file,  '_test', '',         '')
-    elseif a:filename =~ '\v^\w+\.exs'
-      let new_file = substitute(new_file,  '.exs', '_test.exs', '')
+    if a:filename =~ 'rb$'
+      if a:filename !~ '^spec/'
+        let new_file = substitute(new_file, '^app/',  'spec\/',      '')
+        let new_file = substitute(new_file, '^lib/',  'spec\/lib\/', '')
+        let new_file = substitute(new_file, '\.rb',   '_spec\.rb',   '')
+      else
+        let new_file = substitute(new_file, '^spec\/lib\/',   'lib\/', '')
+        let new_file = substitute(new_file, '^spec\/',        'app\/', '')
+        let new_file = substitute(new_file, '_spec\.rb',      '\.rb',  '')
+      end
+    elseif a:filename =~ 'ex$' || a:filename =~ 'exs$'
+
+      if a:filename =~ '^test/channels/' || a:filename =~ '^test/controllers' || a:filename =~ '^test/models'
+        let new_file = substitute(new_file, '^test/channels', 'web\/channels',        '')
+        let new_file = substitute(new_file, '^test/controllers', 'web\/controllers',  '')
+        let new_file = substitute(new_file, '^test/models',      'web\/models',       '')
+        let new_file = substitute(new_file, '_test.exs$',        '.ex',               '')
+      elseif a:filename =~ '^test/'  " standard elixir files
+        let new_file = substitute(new_file, '^test/',      'lib\/',       '')
+        let new_file = substitute(new_file, '_test.exs$',  '.ex',         '')
+      elseif a:filename =~ '^web/controllers' || a:filename =~ '^web/models' || a:filename =~ '^web/channels'
+        let new_file = substitute(new_file, '^web/controllers',  'test/controllers',  '')
+        let new_file = substitute(new_file, '^web/models/',      'test\/models\/',    '')
+        let new_file = substitute(new_file, '^web/channels/',    'test\/channels\/',  '')
+        let new_file = substitute(new_file, '.ex',               '_test.exs',         '')
+      elseif a:filename =~ '^lib/'
+        let new_file = substitute(new_file, '^lib',  'test',     '')
+        let new_file = substitute(new_file, '.ex',  '_test.exs', '')
+      elseif a:filename =~ '\v\w+_test\.exs'
+        let new_file = substitute(new_file,  '_test', '',         '')
+      elseif a:filename =~ '\v^\w+\.exs'
+        let new_file = substitute(new_file,  '.exs', '_test.exs', '')
+      end
     end
-  end
 
-  return new_file
-endfunction
+    return new_file
+  endfunction
 
-function! AssertEquality(value, expectation)
-  if a:value != a:expectation
-    echoerr a:value . ' does not match ' . a:expectation
-  endif
-endfunction
+  function! AssertEquality(value, expectation)
+    if a:value != a:expectation
+      echoerr a:value . ' does not match ' . a:expectation
+    endif
+  endfunction
 
-function! TestAlternateForFile()
-  " Elixir
-  call AssertEquality(AlternateForFile('test/piapprox_test.exs'),                     'lib/piapprox.ex')
-  call AssertEquality(AlternateForFile('lib/piapprox.ex'),                            'test/piapprox_test.exs')
-  " Exercism Elixir
-  call AssertEquality(AlternateForFile('hello_world.exs'),      'hello_world_test.exs')
-  call AssertEquality(AlternateForFile('hello_world_test.exs'), 'hello_world.exs')
+  function! TestAlternateForFile()
+    " Elixir
+    call AssertEquality(AlternateForFile('test/piapprox_test.exs'),                     'lib/piapprox.ex')
+    call AssertEquality(AlternateForFile('lib/piapprox.ex'),                            'test/piapprox_test.exs')
+    " Exercism Elixir
+    call AssertEquality(AlternateForFile('hello_world.exs'),      'hello_world_test.exs')
+    call AssertEquality(AlternateForFile('hello_world_test.exs'), 'hello_world.exs')
 
-  " Phoenix
-  call AssertEquality(AlternateForFile('test/controllers/page_controller_test.exs'), 'web/controllers/page_controller.ex')
-  call AssertEquality(AlternateForFile('test/channels/room_channel_test.exs'),       'web/channels/room_channel.ex')
-  call AssertEquality(AlternateForFile('web/controllers/page_controller.ex'),        'test/controllers/page_controller_test.exs')
+    " Phoenix
+    call AssertEquality(AlternateForFile('test/controllers/page_controller_test.exs'), 'web/controllers/page_controller.ex')
+    call AssertEquality(AlternateForFile('test/channels/room_channel_test.exs'),       'web/channels/room_channel.ex')
+    call AssertEquality(AlternateForFile('web/controllers/page_controller.ex'),        'test/controllers/page_controller_test.exs')
 
-  " Rails
-  call AssertEquality(AlternateForFile('spec/lib/adwords/api_spec.rb'), 'lib/adwords/api.rb')
-  call AssertEquality(AlternateForFile('lib/adwords/api.rb'),           'spec/lib/adwords/api_spec.rb')
-  call AssertEquality(AlternateForFile('app/controllers/application_controller.rb'), 'spec/controllers/application_controller_spec.rb')
-  call AssertEquality(AlternateForFile('Gemfile'), 'Gemfile.lock')
-endfunction
+    " Rails
+    call AssertEquality(AlternateForFile('spec/lib/adwords/api_spec.rb'), 'lib/adwords/api.rb')
+    call AssertEquality(AlternateForFile('lib/adwords/api.rb'),           'spec/lib/adwords/api_spec.rb')
+    call AssertEquality(AlternateForFile('app/controllers/application_controller.rb'), 'spec/controllers/application_controller_spec.rb')
+    call AssertEquality(AlternateForFile('Gemfile'), 'Gemfile.lock')
+  endfunction
 
-call TestAlternateForFile()
+  call TestAlternateForFile()
+endif
 
 nnoremap <leader>. :call OpenTestAlternate()<cr>
 
