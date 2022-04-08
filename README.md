@@ -7,6 +7,6 @@ This is a collection of dotfiles that might be useful to others.  Like all dotfi
     cd
     git clone git@github.com:garyharan/dotfiles.git
     cd ~/dotfiles/
-    chmod +x makesymlinks.sh
-    ./makesymlinks.sh
+    chmod +x setup.sh
+    ./setup.sh
   
