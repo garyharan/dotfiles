@@ -47,7 +47,7 @@ Plugin 'ruanyl/vim-gh-line'
 " FROM https://github.com/garbas/vim-snipmate
 Plugin 'MarcWeber/vim-addon-mw-utils'
 Plugin 'tomtom/tlib_vim'
-Plugin 'garbas/vim-snipmate'
+" Plugin 'garbas/vim-snipmate'
 Plugin 'honza/vim-snippets'
 
 Plugin 'elixir-lang/vim-elixir'

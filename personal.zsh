@@ -1,6 +1,11 @@
-#!/bin/sh
+source $(brew --prefix)/opt/powerlevel10k/powerlevel10k.zsh-theme
 
-echo "Setting up personal ZSH"
+export POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+
+
+export CLICOLOR=1
+export LSCOLORS=GxFxCxDxBxegedabagaced
 
 export GIT_EDITOR="mvim -f"
 
@@ -11,7 +16,7 @@ alias gwd="git diff --word-diff"
 alias gs="git status -sb"
 alias gc="git commit"
 alias gca="git commit -a"
-alias ll="ls -last"
+alias ll="ls -last -G"
 alias gl="git log --oneline --decorate"
 alias g="git"
 alias gps="git push"
@@ -34,11 +39,12 @@ function rebase_from_merge_base () {
   git rebase -i $(current_merge_base)
 }
 
-
-function foo () {
-  echo "foo"
+# Last, add git branch info.
+parse_git_branch() {
+  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
 }
 
-function bar () {
-  $(foo) | sed "s/foo/baz/"
-}
+# Taken from : https://github.com/asdf-vm/asdf-erlang/issues/207#issuecomment-883216342
+export KERL_CONFIGURE_OPTIONS="--with-ssl=`brew --prefix openssl` \
+                               --with-wx-config=`brew --prefix wxmac`/bin/wx-config \
+                               --without-javac"
