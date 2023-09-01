@@ -27,9 +27,25 @@ alias be="bundle exec"
 alias ber="bundle exec rake"
 alias berc="bundle exec rails console"
 
+
+function default_branch () {
+  git symbolic-ref refs/remotes/origin/HEAD | awk -F/ '{print $NF}'
+}
+
 function current_branch_name () {
   git branch | grep "*" | sed "s/\* //"
 }
+
+function review_current_branch_files () {
+  git diff --name-only $(default_branch)..$(current_branch_name) | xargs studio
+}
+
+function review_current_branch_diff () {
+  git difftool -y -t Kaleidoscope $(default_branch)..$(current_branch_name)
+}
+
+alias gdo=review_current_branch_files
+alias gdb=review_current_branch_diff
 
 function current_merge_base () {
   git merge-base $(current_branch_name) master
