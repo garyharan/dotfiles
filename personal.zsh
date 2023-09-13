@@ -11,7 +11,7 @@ export GIT_EDITOR="mvim -f"
 
 alias g="git"
 alias ga="git add"
-alias gd="git difftool -y -t Kaleidoscope"
+alias gd="git difftool -y -t sourcetree"
 alias gwd="git diff --word-diff"
 alias gs="git status -sb"
 alias gc="git commit"
@@ -59,8 +59,3 @@ function rebase_from_merge_base () {
 parse_git_branch() {
   git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
 }
-
-# Taken from : https://github.com/asdf-vm/asdf-erlang/issues/207#issuecomment-883216342
-export KERL_CONFIGURE_OPTIONS="--with-ssl=`brew --prefix openssl` \
-                               --with-wx-config=`brew --prefix wxmac`/bin/wx-config \
-                               --without-javac"
