@@ -11,7 +11,7 @@ export GIT_EDITOR="mvim -f"
 
 alias g="git"
 alias ga="git add"
-alias gd="git difftool -y -t sourcetree"
+alias gd="git difftool -y -t Kaleidoscope"
 alias gwd="git diff --word-diff"
 alias gs="git status -sb"
 alias gc="git commit"
