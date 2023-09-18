@@ -44,11 +44,16 @@ function review_current_branch_diff () {
   git difftool -y -t Kaleidoscope $(default_branch)..$(current_branch_name)
 }
 
+function review_current_branch_log () {
+  git log --oneline $(default_branch)..$(current_branch_name)
+}
+
 alias gdo=review_current_branch_files
 alias gdb=review_current_branch_diff
+alias gdl=review_current_branch_log
 
 function current_merge_base () {
-  git merge-base $(current_branch_name) master
+  git merge-base $(current_branch_name) $(default_branch)
 }
 
 function rebase_from_merge_base () {
