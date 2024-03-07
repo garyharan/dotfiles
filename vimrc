@@ -39,7 +39,7 @@ Plugin 'rking/ag.vim'
 Plugin 'godlygeek/tabular' " Aligns csv files
 Plugin 'terryma/vim-expand-region'
 Plugin 'wavded/vim-stylus'
-Plugin 'zxqfl/tabnine-vim'
+" Plugin 'zxqfl/tabnine-vim'
 Plugin 'AndrewRadev/splitjoin.vim'
 
 Plugin 'ruanyl/vim-gh-line'

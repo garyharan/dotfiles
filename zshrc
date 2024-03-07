@@ -5,6 +5,13 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
+# Keep history for a long time: https://www.soberkoder.com/better-zsh-history/
+export HISTFILESIZE=1000000000
+export HISTSIZE=1000000000
+setopt HIST_FIND_NO_DUPS
+setopt INC_APPEND_HISTORY
+export HISTTIMEFORMAT="[%F %T] "
+
 alias ll="ls -lasF"
 
 # For VIM to ignore files from .gitignore
