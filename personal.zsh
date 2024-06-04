@@ -7,7 +7,8 @@ typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 export CLICOLOR=1
 export LSCOLORS=GxFxCxDxBxegedabagaced
 
-export GIT_EDITOR="mvim -f"
+export GIT_EDITOR="code -w"
+export EDITOR="code -w"
 
 alias g="git"
 alias ga="git add"

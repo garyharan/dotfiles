@@ -61,8 +61,6 @@ export FTP_HOST=localhost
 
 export OPEN_GIT_PR=true # git pr 472 will now open in browser after it is done
 
-export GIT_EDITOR="mvim -f"
-
 # enables color for tests http://stackoverflow.com/questions/307783/how-do-i-enable-color-when-running-rspec-through-rstakeout
 export AUTOTEST=true
 
